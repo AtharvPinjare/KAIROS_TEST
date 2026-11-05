@@ -36,8 +36,8 @@ namespace Kairos
         public AbilityChannels Channels => channels;
         public float CooldownDuration => cooldownDuration;
         public string StateName => machine.Current == null ? "None" : machine.Current.GetType().Name;
-        public float CooldownRemaining { get; set; }
-        public float ActiveRemaining { get; set; }
+        public float CooldownRemaining { get; internal set; }
+        public float ActiveRemaining { get; internal set; }
 
         // The four states. Created once; they never reference each other, only this controller.
         public ReadyState Ready { get; private set; }
