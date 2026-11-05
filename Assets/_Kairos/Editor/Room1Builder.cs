@@ -29,6 +29,7 @@ namespace Kairos.EditorTools
             BuildKillZone();
 
             var player = PlayerRigBuilder.BuildPlayer(new Vector3(1f, 0.05f, 0f), onRespawn);
+            AbilityRigBuilder.AddToPlayer(player);
             PlayerRigBuilder.BuildCamera(player.transform);
             PlayerRigBuilder.BuildBootstrap();
 
@@ -56,8 +57,9 @@ namespace Kairos.EditorTools
             BuildUtil.Box("ExitLedge", new Vector3(17.5f, 1.8f, 0f), new Vector3(13f, 3.6f, Depth), room, ground, "Ground");
             // Placeholder for the R1->R2 door (cp3 replaces it): X 23-24, Y 3.6-8.
             BuildUtil.Box("Door_R1R2_Placeholder", new Vector3(23.5f, 5.8f, 0f), new Vector3(1f, 4.4f, Depth), room, door, "Ground");
-            // Cargo pod 2x2x2 at (9, 7), touching the ceiling. Static in cp1; cp2 gives it a Rigidbody and ForceTarget.
-            BuildUtil.Box("CargoPod", new Vector3(9f, 7f, 0f), new Vector3(2f, 2f, 2f), room, target, "Targetable");
+            // Cargo pod 2x2x2 at (9, 7), touching the ceiling. Mass 4, anti-gravity (Up) at start so it rests on the ceiling.
+            var pod = BuildUtil.Box("CargoPod", new Vector3(9f, 7f, 0f), new Vector3(2f, 2f, 2f), room, target, "Targetable");
+            AbilityRigBuilder.MakeForceTarget(pod, 4f, true);
             // Backdrop behind the play plane for depth only (no collider).
             BuildUtil.Box("Backdrop", new Vector3(12f, 4f, 2.5f), new Vector3(24f, 8f, 0.2f), room, backdrop, "Default", false);
         }
