@@ -53,6 +53,10 @@ Ordering: `PlayerInputReader.Update` must run **before** `AbilityController.Upda
 ## PlayerRespawn
 Stores the last checkpoint position; on `RespawnPressed` or a `KillZone` hit: reset velocity, teleport, raise `OnPlayerRespawn`. The `AbilityController` listens and calls `ForceReset()`; `LevelManager` resets props.
 
+**As built in cp1:** `PlayerRespawn` implements `IRespawnable` (`Scripts/Core`). `Checkpoint` and `KillZone` find the player with `other.GetComponentInParent<IRespawnable>()`, so Level code never references the Player assembly folder. `Checkpoint` always updates the respawn point on entry but raises `OnCheckpointReached` only the first time.
+
+**PlayerMotor as built in cp1:** the jump press is buffered in `Update` (so a press between two physics steps is not lost); every timer (coyote, buffer) counts down in `FixedUpdate`; "grounded" is ignored while `isJumping && velocity.y > 0` so the coyote timer cannot refill during takeoff. Measured at 50 Hz: apex 2.135 m, flat distance 7.92 m (see `BUILD_LOG.md`, cp1).
+
 ## Camera (Cinemachine 3)
 - One `CinemachineCamera` follows the player with a `CinemachinePositionComposer` (camera distance ~14, small dead zone, slight look-ahead); main camera has a `CinemachineBrain`.
 - Side view: rotation (0, 0, 0), perspective FOV ~40.
