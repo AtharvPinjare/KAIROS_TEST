@@ -7,7 +7,7 @@ Write entries as you work. This log is the raw material for the student prompt c
 - Packages and versions (from `Packages/manifest.json`): URP 17.3.0, Input System 1.19.0, Cinemachine 3.1.7, Animation Rigging 1.4.1, Timeline 1.8.12, uGUI 2.0.0 (carries TextMeshPro in Unity 6), Test Framework 1.6.0, AI Navigation 2.0.12. ProBuilder not installed (optional). Shader Graph is present in the package cache as a URP dependency.
 - Unity MCP version / pinned tag: `com.coplaydev.unity-mcp` pinned to `#v10.0.0` (git URL in manifest). Note: `docs/05_MCP_WORKFLOW.md` quotes the v10.3.0 README, so tool names may differ slightly from that doc.
 - MCP tools visible to Claude Code: see "MCP tools" below.
-- Tool groups enabled: `core` only (per `manage_tools list_groups`). Disabled: animation, asset_gen, docs, probuilder, profiling, scripting_ext, testing, ui, vfx.
+- Tool groups enabled: `core` (default) and `testing` (activated at cp0 via `manage_tools activate`; `run_tests` and `get_test_job` are now callable). Disabled: animation, asset_gen, docs, probuilder, profiling, scripting_ext, ui, vfx.
 - Active Input Handling: `activeInputHandler: 1` (Input System Package, New) in `ProjectSettings/ProjectSettings.asset`. Left untouched.
 - Physics: `Physics.gravity` = (0, -9.81, 0) in `ProjectSettings/DynamicsManager.asset`. Fixed timestep = 0.02 s (50 Hz), the Unity default. Jump-apex and coyote-time measurements in cp1 assume this; if the timestep changes, re-measure.
 - Layers added at cp0 (TagManager slots): Player 8, Ground 9, Targetable 10, Interactable 11. `Ignore Raycast` is built in (slot 2).

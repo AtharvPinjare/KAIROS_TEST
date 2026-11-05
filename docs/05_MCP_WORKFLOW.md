@@ -1,5 +1,10 @@
 # 05 — Unity MCP workflow (CoplayDev `unity-mcp`)
 
+## Pinned version and real tool list
+- This project is **pinned to `v10.0.0`** (`com.coplaydev.unity-mcp` in `Packages/manifest.json`). Do not update it during the build.
+- The tool names in **`docs/BUILD_LOG.md` under "MCP tools" are the real list** for this install. Where this file and the log disagree, the log wins.
+- The notes below come from the v10.3.0 README and were written before the install, so treat them as background.
+
 ## What I verified (README of CoplayDev/unity-mcp, v10.3.0 dated 2026-10-04)
 - Called "MCP for Unity". Requirements: Unity 2021.3 LTS through 6.x, Python 3.10+ via `uv`. Works with Claude Code and other MCP clients.
 - Install: Unity → Package Manager → Add package from git URL: `https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main` (the README suggests pinning a release tag such as `#v10.0.0`, or `openupm add com.coplaydev.unity-mcp`).
