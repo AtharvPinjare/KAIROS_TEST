@@ -223,3 +223,54 @@ Additions made in cp2 beyond the documents (all additive; please confirm or reje
 - **cp2: tests need the Unity window in the foreground** (measured: 12.35 s active time when it was not, 12.002 s when it was).
 - `Assets/InputSystem_Actions.inputactions` (the URP template's default action asset) is unused, since the project polls devices directly. Left alone.
 - `Assets/Settings/Mobile_RPAsset.asset` was reserialized by Unity (asset version 12 → 13); committed separately as format-only, like the cp0 SampleScene.
+
+## WIP notes — cp2 — 2026-11-05 (state at the moment work was paused)
+
+**Summary:** cp2 is functionally complete and committed (22 `cp2:` commits before this one). Nothing is failing right now. What is left is decisions and human checks, not code. There is no `cp2` tag yet.
+
+### Done (evidence in the cp2 entry above)
+- All cp2 files built, compiled one at a time, console clean. Last full Play Mode run (assembly filter `Kairos.Tests`): **28 tests, 28 passed, 0 failed, 0 skipped** (10 from cp1, 18 new).
+- Room 1 rebuilds with `Tools/Kairos/Build Room 1`; pod is a `ForceTarget`; Gravity Shift asset, loadout and 10 channel assets exist.
+- Measured: active 12.002 s, cooldown 2.009 s, pod lands at (9.00, 1.00) top 2.00, returns to y = 7.00, one `OnEffectReverted` per cast, Room 1 solved with injected input (ledge at x = 14.13, feet 3.60, 7.2 s left).
+- Specs updated: `ability-fsm.md`, `force-targets.md`, `events-data.md`.
+
+### Half done / not done
+- **Uncommitted, not mine:** `ProjectSettings/ProjectSettings.asset` has `runInBackground: 1` (committed 0) and `ProjectSettings/EditorSettings.asset` has `m_EnterPlayModeOptions: 1` (committed 0). Values read just before writing this note. Written by the MCP test runner's "No Throttling" step. I did not edit or restore them; waiting for the human's choice (restore both to 0, or commit `runInBackground: 1` deliberately). They must not be swept into a commit by accident: always `git add` named files only.
+- **No tag.** `git tag cp2` is the human's call after review.
+- **Not done:** hand play with a real mouse; student-mode rehearsal (needs a fresh chat with only the Project Brief); screenshot of the targeting view; test for "standing on the pod when the effect ends".
+- **Small follow-up not made:** `AbilityController.CooldownRemaining` / `ActiveRemaining` have public setters; should be `internal set`.
+- **Unexplained, not investigated:** the console printed `The referenced script (Unknown) on this Behaviour is missing!` five times at the start of each stalled test run. I checked the 15 script GUIDs in `Level_ContainmentWing.unity`: all resolve to real files, so the scene is not the source. My guess is the leftover `Assets/InitTestScene*.unity`, but I never confirmed it. After a successful run the warning did not appear.
+
+### Failing test or error, with full text
+Currently failing: **nothing**. These all occurred during the phase; each is fixed unless marked otherwise.
+
+1. Compile (fixed, `ForceTarget.cs`):
+   `Assets\_Kairos\Scripts\Targets\ForceTarget.cs(10,6): error CS1729: 'RequireComponent' does not contain a constructor that takes 4 arguments`
+2. Compile (self-resolved on the next compile; my copy of the message is cut off in the log reader, so the end of the line is missing):
+   `Assets\_Kairos\Scripts\Core\CooldownState.cs(23,24): error CS1061: 'AbilityController' does not contain a definition for 'SelectFromInput' and no accessible extension method 'SelectFromInput' accepting a first ar`
+3. Test (fixed, mouse byte-bitfield quirk), `State_Label_Cycles...`:
+   `Expected: String containing "State: ActiveState"` / `But was:  "State: ReadyState\nAbility: Gravity Shift / Down\nTarget: none\nCooldown: 0.0s   Active: 0.0s"`
+4. Test (fixed, manual `InputSystem.Update()`), same test:
+   `Expected: String containing "State: TargetingState"` / `But was:  "State: ReadyState\nAbility: Gravity Shift / Down\nTarget: none\nCooldown: 0.0s   Active: 0.0s"`
+5. Test (fixed, measured game time instead of real time), same test:
+   `Gravity Shift lasts 12 s` / `Expected: 12.0d +/- 0.30000001192092896d` / `But was:  12.352569580078125d`
+6. Test (fixed, my diagnostic read a device control from FixedUpdate context):
+   `Unhandled log message: '[Error] Cached unprocessed value unexpectedly became outdated for unknown reason, new value '0' old value '1'.'. Use UnityEngine.TestTools.LogAssert.Expect`
+7. Test (fixed, hold Space through the rise), `Room1_Is_Solvable_By_The_Documented_Solution`:
+   `could not climb onto the pod` / `Expected: True` / `But was:  False`
+8. MCP test runner (workaround, cause not fully proven):
+   `Test job failed to initialize (tests did not start within timeout)`; then `error: tests_running` (`retry_after_ms: 5000`) for new runs while the old job stays "running"; cleared by a forced compile, which reports `Job orphaned after domain reload`. Editor.log line at each stall: `[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files`, directly after `Entering Playmode with Reload Domain disabled.`
+
+### What I tried (for the stalled runs, item 8)
+- Waiting longer: no effect. Stopping Play Mode (`manage_editor stop`), loading `Level_ContainmentWing`, deleting the stray `InitTestScene*.unity`: needed, not sufficient on its own.
+- Bringing the Unity window to the foreground with a PowerShell `SetForegroundWindow`: the run that followed worked, but a later stall happened with the window focused, so focus is not the cause.
+- Forcing a compile with `refresh_unity` (`compile=request`, `mode=force`) to orphan the stuck job, waiting until Editor.log stopped growing, then re-running: worked every time.
+- Reading the settings diff: the only changes are `runInBackground` and `m_EnterPlayModeOptions`, both written by the runner. The theory (the runner flips `runInBackground`, Unity recompiles, the run is interrupted) fits the log line and the pattern that runs start fine once the value is already 1. I have not proven it by changing the value back and forth, because the human asked me not to touch ProjectSettings without asking.
+
+### What I would try next
+1. Ask the human for the ProjectSettings decision. If they pick "commit `runInBackground: 1`", set it, commit it as its own `cp2:` commit, and confirm that 5 consecutive runs start without a stall. If they pick "restore", `git checkout -- ProjectSettings/EditorSettings.asset ProjectSettings/ProjectSettings.asset` after loading `Level_ContainmentWing`.
+2. Human hand-play of Room 1 (controls: A/D, Space held, right mouse hold + left click, R variant, T respawn, F1). Note whether the pod is clickable from the spawn point and whether the first jump onto the pod (0.135 m margin) is acceptable. If it is not, decide between raising `jumpApexHeight` and changing the pod's landing height.
+3. Find the source of the five "referenced script (Unknown) … missing" warnings: start a run, and when it stalls, open the leftover `InitTestScene*.unity` and look at its root object's components before deleting it.
+4. Make the two timer setters `internal set`, re-run the 28 tests, commit.
+5. Run the student-mode rehearsal on `AbilityStateMachine`, `ActiveState` and `GravityShiftAbility`; record the result here.
+6. After review: `git tag cp2`, then start cp3 (Mass Control, `BoolEventChannel`, `PressurePlate`, `Door`, `GoalTrigger`, `BrittleBarrier`, `LevelManager` calling `ForceTarget.ResetToInitial()`).
