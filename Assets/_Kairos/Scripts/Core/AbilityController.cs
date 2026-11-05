@@ -114,6 +114,7 @@ namespace Kairos
         public CastRejectReason TryCast()
         {
             if (Selected == null || Target == null) return CastRejectReason.NoTarget;
+            if (machine.Current == Cooldown) return CastRejectReason.OnCooldown;
             return Selected.CanApply(BuildContext(Target), Target);
         }
 
