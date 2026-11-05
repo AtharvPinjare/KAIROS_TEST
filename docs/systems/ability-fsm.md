@@ -3,7 +3,7 @@
 Phases: cp2 (core), extended in cp3–cp4. Read `01_ARCHITECTURE.md` first.
 
 ## Files
-`IAbilityState`, `AbilityStateMachine`, `AbilityController`, `ReadyState`, `TargetingState`, `ActiveState`, `CooldownState`, `AbilityContext`, `AbilityLoadout`, `TargetFinder`.
+`IAbilityState`, `AbilityStateMachine`, `AbilityController`, `ReadyState`, `TargetingState`, `ActiveState`, `CooldownState`, `AbilityContext`, `AbilityLoadout`, `TargetFinder`, plus (added in cp2) `CastRejectReason`, `AbilityChannels`, `AppliedEffect`.
 
 ## AbilityStateMachine
 ```csharp
@@ -70,6 +70,15 @@ public void ForceReset();               // used by respawn: revert if active, go
 3. Rapid selection changes during Targeting → no stale highlight.
 4. `ChangeState(current)` does nothing.
 5. Reject does not consume cooldown.
+
+## cp2 implementation notes (what the code does beyond the text above)
+- **Two helper classes keep the controller at 150 lines:** `AbilityChannels` (a `[Serializable]` bundle of every channel the controller raises, null-safe; its `TargetChanged` raises only when the target really changes) and `AppliedEffect` (remembers ability, target and context at `BeginEffect`, so `EndEffect` reverts exactly that even if the selection changed or the target was destroyed).
+- `Target` is **kept** when `TargetingState` exits (only the highlight is cleared with `OnTargetChanged(null)`), because `ActiveState.Enter` needs it. `ReadyState.Enter` calls `ClearTarget()`.
+- `TargetingState.Tick` also leaves for Ready when `!TargetHeld` (a missed release event cannot strand the player in Targeting).
+- `TryCast()` order: no target (or nothing selected) → `NoTarget`; current state is Cooldown → `OnCooldown`; then `Selected.CanApply`. In normal play a Cooldown state never reaches Targeting, so `OnCooldown` is only reachable by calling `TryCast()` directly.
+- `CooldownState.Exit` raises `OnCooldownChanged(0)` so the ring ends empty even after `ForceReset`.
+- `ForceReset()` = `GoTo(Ready)` (Active.Exit reverts) + `EndEffect()` (no-op safety) + `ClearTarget()`. It is subscribed to `OnPlayerRespawn` in `OnEnable`.
+- `Start()` initializes the machine with Ready and selects slot 0.
 
 ## DebugOverlay (build in cp2)
 `OnGUI` box (toggle F1): current state name, selected ability + variant, target name, cooldown remaining, active timer. This is the single most useful teaching tool for debugging state machines.

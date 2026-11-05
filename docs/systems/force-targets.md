@@ -16,7 +16,8 @@ public enum MagneticPolarity { Neutral, North, South }
 It stores permissions and numbers. It never applies physics.
 
 ## ForceTarget (the executor and memory)
-`[RequireComponent(typeof(Rigidbody), typeof(Collider), typeof(ObjectAttributes), typeof(CustomGravity))]`
+`[RequireComponent(typeof(Collider), typeof(ObjectAttributes), typeof(CustomGravity))]`
+(`RequireComponent` accepts at most **three** types, so the Rigidbody comes from `CustomGravity`'s own `[RequireComponent(typeof(Rigidbody))]`. The original four-type attribute did not compile.)
 
 - `Awake`: cache `Body`, `Attributes`, `Gravity`; create a **runtime `PhysicsMaterial` instance** (copy of the collider's shared material, or a new one named `Kairos_Runtime` with normal friction 0.6) and assign it to the collider so changes never touch shared assets.
 - Records its initial state (position, rotation, velocity, mass, gravity enabled/direction, friction) for `ResetToInitial()`.
@@ -39,7 +40,7 @@ public class CustomGravity : MonoBehaviour
     void FixedUpdate() { if (Enabled) rb.AddForce(Direction.normalized * strength, ForceMode.Acceleration); }
 }
 ```
-Default state: disabled (normal gravity). The cargo pod starts with `Set(true, Vector3.up)`.
+Default state: disabled (normal gravity). The cargo pod starts with `Set(true, Vector3.up)`: in the code this is the serialized `startsEnabled` / `startDirection` pair, applied by `Initialize()` (idempotent; `ForceTarget.Awake` calls it before recording the initial state, so Awake order between the two components does not matter).
 
 ## AbilityDefinition subclasses (each is ONE file + ONE asset)
 

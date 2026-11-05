@@ -26,6 +26,8 @@ Rules:
 - Channels carry no state; if a listener needs the last value, it asks the producer's read-only property.
 - A channel asset lives in `Assets/_Kairos/ScriptableObjects/Events/` and is dragged into serialized fields.
 
+Built so far: `VoidEventChannel` (cp1), `EventChannel<T>`, `FloatEventChannel`, `IntEventChannel`, `RejectEventChannel`, `AbilityEventChannel`, `ForceTargetEventChannel` (cp2). `BoolEventChannel` arrives with the pressure plate (cp3) and `StringEventChannel` with the objective text (cp9).
+
 ## Channel catalogue
 | Channel asset | Type | Raised by | Listened to by |
 |---|---|---|---|
